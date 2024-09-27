@@ -322,8 +322,8 @@ public class JPiereDeleteClientRecords extends SvrProcess
 																										, TYPE_ALL_TRANSACTION, false, "BEFORE_PROCESS");
 		commitEx();
 
-		executeDeleteSQL("AD_Session", "AD_Client_ID <> 0", TYPE_ALL_TRANSACTION, false, "BEFORE_PROCESS");
-		commitEx();
+		//executeDeleteSQL("AD_Session", "AD_Client_ID <> 0", TYPE_ALL_TRANSACTION, false, "BEFORE_PROCESS");
+		//commitEx();
 		createLog("", "", "COMMIT", "", "", "",false);
 
 		if(p_LookupClientID != 0 &&
@@ -3001,9 +3001,25 @@ public class JPiereDeleteClientRecords extends SvrProcess
 
 							//Recurring
 							,"C_Recurring","C_Recurring_Run"
-
+							//Custom Tables
+							, "DCS_ShippingGuide"
+							, "DCS_Order_ShippingGuide"
+							, "ING_ShippingGuideLine"
+							, "ING_ShippingGuidePicking"
+							, "ING_VoucherWithholding"
+							, "LCO_InvoiceWithholding"
+							//New Core Tables
+							, "M_StorageReservationLog"
 							//,"DD_Order","DD_OrderLine","PP_Cost_Collector","PP_Order"
 							//,"PP_MRP"
+							//PAYMENT REQUEST TABLE
+							, "ING_PaymentRequest", "ING_PaymentRequestLine"
+							//POS PAYMENT TABLE
+							, "ING_POSPayment"
+							//Book Tables
+							, "ING_Book", "ING_BookLine"
+							//POS Tables
+							, "C_POS_Session", "C_POS_Transaction"
 						};
 
 
