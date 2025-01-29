@@ -3008,6 +3008,10 @@ public class JPiereDeleteClientRecords extends SvrProcess
 							, "ING_ShippingGuidePicking"
 							, "ING_VoucherWithholding"
 							, "LCO_InvoiceWithholding"
+							, "C_OrderLineMA"
+							, "ING_Raffle"
+							, "ING_RaffleLine"
+							, "ING_RaffleLineValid"
 							//New Core Tables
 							, "M_StorageReservationLog"
 							//,"DD_Order","DD_OrderLine","PP_Cost_Collector","PP_Order"
