@@ -112,6 +112,9 @@ public class JPiereDeleteClientRecords extends SvrProcess
 	private IProcessUI processMonitor = null;
 
 	private MDeleteProfile m_DeleteProfile = null;
+	
+	//	Add By José Castañeda
+	private Integer p_AD_Org_ID;
 
 	/**
 	 *  Prepare - e.g., get Parameters.
@@ -133,6 +136,8 @@ public class JPiereDeleteClientRecords extends SvrProcess
 				p_IsTruncateJP = para[i].getParameterAsBoolean();
 			}else if(name.equals("IsAllowLogging")){
 				p_IsAllowLogging = para[i].getParameterAsBoolean();
+			}else if (name.equals("AD_Org_ID")) {
+				p_AD_Org_ID = para[i].getParameterAsInt();
 			}else{
 				log.log(Level.SEVERE, "Unknown Parameter: " + name);
 			}
@@ -212,7 +217,6 @@ public class JPiereDeleteClientRecords extends SvrProcess
 			}
 
 		}
-
 
 		addBufferLog(0, null, null, "Process Log", MTable.getTable_ID("AD_PInstance"), getAD_PInstance_ID());
 
@@ -584,6 +588,10 @@ public class JPiereDeleteClientRecords extends SvrProcess
 			for(Integer AD_Sequence_ID:DocSequenceList)
 			{
 				String updateSequenceSQL = "UPDATE AD_Sequence SET CurrentNext = StartNo WHERE AD_Sequence_ID="+AD_Sequence_ID.toString();
+				
+				if(p_AD_Org_ID > 0)
+					updateSequenceSQL=updateSequenceSQL+" AND AD_Org_ID NOT IN(" + p_AD_Org_ID + ",0)";
+				
 				PreparedStatement pstmt = null;
 				ResultSet rs = null;
 				int updates = 0;
@@ -1647,18 +1655,36 @@ public class JPiereDeleteClientRecords extends SvrProcess
 		{
 			if(type.equals(TYPE_ALL_TRANSACTION) && isTruncate)
 			{
+				//	Add By José Castañeda
+				if(p_AD_Org_ID > 0)
+					DeleteSQL.append(" WHERE AD_Org_ID NOT IN (").append(p_AD_Org_ID).append(", 0)");
+				
 				;//Nothing to do;
 			}else if(type.equals(TYPE_ALL_TRANSACTION) && !isTruncate){
 				DeleteSQL.append(" WHERE " + where);
+				//	Add By José Castañeda
+				if(p_AD_Org_ID > 0)
+					DeleteSQL.append(" AND AD_Org_ID NOT IN (").append(p_AD_Org_ID).append(", 0)");
+				
 			}else{
 				DeleteSQL.append(" WHERE " + where + " AND AD_Client_ID = " + p_LookupClientID );
+				//	Add By José Castañeda
+				if(p_AD_Org_ID > 0)
+					DeleteSQL.append(" AND AD_Org_ID NOT IN (").append(p_AD_Org_ID).append(", 0)");
 			}
 		}else{
 			if(type.equals(TYPE_ALL_TRANSACTION))
 			{
+				//	Add By José Castañeda
+				if(p_AD_Org_ID > 0)
+					DeleteSQL.append(" WHERE AD_Org_ID NOT IN (").append(p_AD_Org_ID).append(", 0)");
+				
 				;//Noting to do;
 			}else{
 				DeleteSQL.append(" WHERE AD_Client_ID = " + p_LookupClientID);
+				//	Add By José Castañeda
+				if(p_AD_Org_ID > 0)
+					DeleteSQL.append(" AND AD_Org_ID NOT IN (").append(p_AD_Org_ID).append(", 0)");
 			}
 		}
 
@@ -1761,16 +1787,27 @@ public class JPiereDeleteClientRecords extends SvrProcess
 			updateSQL.append(" WHERE " + where);
 			if(type.equals(TYPE_ALL_TRANSACTION))
 			{
+				if(p_AD_Org_ID > 0)
+					updateSQL.append(" WHERE AD_Org_ID NOT IN (").append(p_AD_Org_ID).append(", 0)");
 				;//Noting to do;
 			}else{
 				updateSQL.append(" AND AD_Client_ID = " + p_LookupClientID );
+				
+				if(p_AD_Org_ID > 0)
+					updateSQL.append(" AND AD_Org_ID NOT IN (").append(p_AD_Org_ID).append(", 0)");
 			}
 		}else{
 			if(type.equals(TYPE_ALL_TRANSACTION))
 			{
+				if(p_AD_Org_ID > 0)
+					updateSQL.append(" WHERE AD_Org_ID NOT IN (").append(p_AD_Org_ID).append(", 0)");
 				;//Noting to do;
 			}else{
 				updateSQL.append(" WHERE AD_Client_ID = " + p_LookupClientID);
+				
+				if(p_AD_Org_ID > 0)
+					updateSQL.append(" AND AD_Org_ID NOT IN (").append(p_AD_Org_ID).append(", 0)");
+				
 			}
 		}
 
@@ -1808,9 +1845,14 @@ public class JPiereDeleteClientRecords extends SvrProcess
 
 		if(type.equals(TYPE_ALL_TRANSACTION))
 		{
+			if(p_AD_Org_ID > 0)
+				updateSQL.append(" WHERE AD_Org_ID NOT IN (").append(p_AD_Org_ID).append(", 0)");
 			;//Nothing to do
 		}else{
 			updateSQL.append(" WHERE AD_Client_ID = "+ p_LookupClientID );
+			
+			if(p_AD_Org_ID > 0)
+				updateSQL.append(" AND AD_Org_ID NOT IN (").append(p_AD_Org_ID).append(", 0)");
 		}
 
 
@@ -3025,7 +3067,23 @@ public class JPiereDeleteClientRecords extends SvrProcess
 							//Book Tables
 							, "ING_Book", "ING_BookLine", "ING_BookLineByReportz"
 							//POS Tables
-							, "C_POS_Session", "C_POS_Transaction"
+							, "C_POS_Session", "C_POS_Transaction", "ING_FailureManagement"
+							//Report Z Tables
+							, "ING_ReportZ", "ING_BookByReportZ", "ING_InventoryBook", "ING_BookLineByReportZ_Summary", "ing_inventorybookline", "ing_xmlseniat"
+							
+							//	TODO: Try With Org Filter
+							
+							, "C_POS", "ING_POSTenderType"
+							, "C_BankTransfer", "C_BankAccount"
+							,"M_ProductPrice","M_ProductPriceVendorBreak", "M_PriceList"
+							,"M_PriceList_Trl","M_PriceList_Version_Trl", "M_PriceList_Version"
+							, "M_Product_PO"
+							, "ING_Classification_Org", "M_Warehouse", "M_Locator", "PA_Report"
+							, "C_Calendar", "C_NonBusinessDay", "C_Year", "C_Period", "C_PeriodControl"
+							, "ING_AgreementLines", "ING_Agreements", "AD_Scheduler", "GL_Distribution", "GL_DistributionLine"
+							, "M_AttributeSetInstance","M_PriceList_Version", "lco_withholdingruleconf"
+							, "rest_refreshtoken", "ad_wf_eventaudit", "ad_importtemplateaccess", "ad_preference", "ing_deliveryconfig"
+							, "c_conversion_rate", "c_bpartner_location", "ad_wf_process",
 						};
 
 
