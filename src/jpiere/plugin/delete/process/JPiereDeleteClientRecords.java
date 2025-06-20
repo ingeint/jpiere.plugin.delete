@@ -3025,7 +3025,11 @@ public class JPiereDeleteClientRecords extends SvrProcess
 							//Book Tables
 							, "ING_Book", "ING_BookLine", "ING_BookLineByReportz"
 							//POS Tables
-							, "C_POS_Session", "C_POS_Transaction"
+							, "C_POS_Session", "C_POS_Transaction", "ING_FailureManagement", "ING_DeliveryConfig", "C_POS", "ING_POSTenderType", "ING_Connection"
+							//Report Z Tables
+							, "ING_ReportZ", "ING_BookByReportZ", "ING_InventoryBook", "ING_BookLineByReportZ_Summary", "ING_InventoryBookLine", "ING_XMLSeniat"
+							//
+							, "C_Conversion_Rate", "ING_Agreements", "ING_AgreementLines", "M_DiscountSchema"
 						};
 
 
