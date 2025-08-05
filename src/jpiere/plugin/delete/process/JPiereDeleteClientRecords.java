@@ -17,11 +17,15 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.logging.Level;
+import java.util.stream.IntStream;
 
+import org.adempiere.exceptions.AdempiereException;
 import org.adempiere.exceptions.DBException;
 import org.adempiere.util.IProcessUI;
 import org.compiere.db.AdempiereDatabase;
@@ -532,9 +536,10 @@ public class JPiereDeleteClientRecords extends SvrProcess
 
 			if(Tables_CustomDelete != null && stringArray_IsIN(Tables_CustomDelete, TrxTables[i]))
 				continue;
-
-			int deletes = executeDeleteSQL(TrxTables[i], null, type, p_IsTruncateJP,"TRX_TABLE");
-
+			
+			int deletes = executeDeleteParent(TrxTables[i], type, p_IsTruncateJP);
+			deletes += executeDeleteSQL(TrxTables[i], null, type, p_IsTruncateJP,"TRX_TABLE");
+			
 			if(deletes==-1)
 			{
 				createLog("","","NOT FOUND: "+ TrxTables[i],"","","", true);
@@ -1625,6 +1630,75 @@ public class JPiereDeleteClientRecords extends SvrProcess
 	{
 		return executeDeleteSQL(table, where, type, isTruncate,"");
 	}
+	
+	private int executeDeleteParent(String tableName, String type, boolean isTruncate) {
+		
+		String[] dependTables = DependTables.getOrDefault(tableName, new String[0]);
+		
+		if (dependTables.length == 0)
+			return 0;
+		
+		return Arrays.stream(dependTables)
+				.mapToInt(toTableName -> executeDeleteParent(tableName, toTableName, type, isTruncate))
+				.reduce(0, (acum, num) -> acum + num);
+	}
+	
+	private int executeDeleteParent(String fromTableName, String toTableName
+			, String type, boolean isTruncate) {
+		
+		MTable table = MTable.get(getCtx(), fromTableName);
+		
+		String[] keyColumns = table.getKeyColumns();
+		
+		if (keyColumns.length == 0)
+			throw new AdempiereException("Table " + fromTableName + " has not key columns");
+		
+		StringBuilder where = IntStream.range(0, keyColumns.length)
+			.mapToObj(i -> new StringBuilder(i != 0 ? " AND " : "")
+					.append(fromTableName).append(".").append(keyColumns[i])
+					.append(" = ").append(toTableName).append(".").append(keyColumns[i]))
+			.reduce(new StringBuilder(), StringBuilder::append);
+		
+		if (!type.equals(TYPE_ALL_TRANSACTION))
+			where.append(" AND ")
+			.append(fromTableName).append(".").append("AD_Client_ID = ").append(p_LookupClientID);
+		
+		if (p_AD_Org_ID > 0)
+			where.append(" AND ")
+			.append(fromTableName).append(".")
+			.append("AD_Org_ID NOT IN (0, ").append(p_AD_Org_ID).append(")");
+		
+		StringBuilder sqlExists = new StringBuilder("EXISTS(")
+					.append(" SELECT 1 FROM ").append(fromTableName)
+					.append(" WHERE ").append(where)
+				.append(")");
+		
+		return executeDeleteDepend(toTableName, sqlExists.toString(), isTruncate);
+	}
+	
+	/**
+	 * 
+	 * @author Argenis Rodríguez
+	 * @param tableName
+	 * @param where
+	 * @param isTruncate
+	 * @return
+	 */
+	private int executeDeleteDepend(String tableName, String where, boolean isTruncate) {
+		
+		if (Util.isEmpty(tableName, true))
+			throw new AdempiereException("TableName Is Empty");
+		
+		if (Util.isEmpty(where, true))
+			throw new AdempiereException("Where is empty");
+		
+		StringBuilder sqlDel = new StringBuilder(isTruncate ? "TRUNCATE " : "DELETE ")
+				.append(" FROM ").append(tableName)
+				.append(" WHERE ").append(where);
+		
+		return DB.executeUpdateEx(sqlDel.toString(), get_TrxName());
+	}
+	
 	/**
 	 * Execute Delete SQL
 	 *
@@ -3081,12 +3155,20 @@ public class JPiereDeleteClientRecords extends SvrProcess
 							, "ING_Classification_Org", "M_Warehouse", "M_Locator", "PA_Report"
 							, "C_Calendar", "C_NonBusinessDay", "C_Year", "C_Period", "C_PeriodControl"
 							, "ING_AgreementLines", "ING_Agreements", "AD_Scheduler", "GL_Distribution", "GL_DistributionLine"
-							, "M_AttributeSetInstance","M_PriceList_Version", "lco_withholdingruleconf"
+							, "AD_Scheduler_Para", "M_AttributeSetInstance","M_PriceList_Version", "lco_withholdingruleconf"
 							, "rest_refreshtoken", "ad_wf_eventaudit", "ad_importtemplateaccess", "ad_preference", "ing_deliveryconfig"
-							, "c_conversion_rate", "c_bpartner_location", "ad_wf_process",
+							, /*"c_conversion_rate", "c_bpartner_location",*/ "ad_wf_process", "AD_WF_Activity",
 						};
-
-
+	
+	@SuppressWarnings("serial")
+	public static HashMap<String, String[]> DependTables = new HashMap<String, String[]>() {{
+		put("C_BankAccount", new String[] {"C_BankAccountDoc", "C_BankAccount_Acct"});
+		put("M_PriceList", new String[] {"M_PriceList_Trl"});
+		put("M_PriceList_Version", new String[] {"M_PriceList_Version_Trl"});
+		put("M_Warehouse", new String[] {"M_Warehouse_Acct"});
+		put("AD_Scheduler", new String[] {"AD_Scheduler_Para"});
+	}};
+	
 	public static String[] IniTables = {
 							//Client/
 							"AD_Client","AD_ClientInfo","AD_ClientShare"
