@@ -3029,7 +3029,30 @@ public class JPiereDeleteClientRecords extends SvrProcess
 							//Report Z Tables
 							, "ING_ReportZ", "ING_BookByReportZ", "ING_InventoryBook", "ING_BookLineByReportZ_Summary", "ING_InventoryBookLine", "ING_XMLSeniat"
 							//
-							, "C_Conversion_Rate", "ING_Agreements", "ING_AgreementLines", "M_DiscountSchema"
+							, "C_Conversion_Rate", "ING_Agreements", "ING_AgreementLines", "M_DiscountSchema", "ING_TransferRegister"
+							// Dispatch Guide
+							, "ING_DispatchGuidePicking", "ING_DispatchGuideLineAtt", "ING_DispatchGuideLine", "ING_DispatchGuide"
+							// IAE
+							, "ING_IAEConfig", "ING_IAEDetail", "ING_IAEDetailLines", "ING_IAEProduct"
+							// Maintenance
+							, "ING_ManWoLine", "ING_ManWorkOrder", "ING_WorkOrderInventory", "ING_WorkOrderInvoices"
+							// Product Prices
+							,"M_PriceList_Version","M_ProductPrice"
+							,"M_PriceList_Version_Trl"
+							// Asset
+							, "A_Asset_Addition",  "A_Asset_Acct", "A_Asset_Change", "A_Asset_Class"
+							, "A_Asset_Delivery", "A_Asset_Disposed", "A_Asset_Group_Acct", "A_Asset_Group_Trl", "A_Asset_Info_Fin", "A_Asset_Info_Ins"
+							, "A_Asset_Info_Lic", "A_Asset_Info_Oth", "A_Asset_Info_Tax", "A_Asset_Product", "A_Asset_Retirement"
+							, "A_Asset_Reval", "A_Asset_Reval_Entry", "A_Asset_Reval_Index", "A_Asset_Split", "A_Asset_Transfer"
+							, "A_Asset_Type", "A_Asset_Use", "I_Asset", "idasset_AssetInfo", "I_FixedAsset", "ING_Asset_Info", "ING_AssetManTrx"
+							, "PP_Order_Node_Asset", "a_depreciation_exp", "A_Depreciation_Workfile", "ING_Measure", "a_asset"
+							// Humant Talent
+							, "I_HR_Movement", "HR_List", "HR_ListType", "HR_ListLine"
+							, "HR_ListVersion", "HR_Basic_Factor_Type", "HR_LoanLines", "HR_Loan", "HR_PaymentSelection", "HR_PaymentSelectionLine"
+							, "HR_SectorCode", "HR_Shift_Incident", "HR_Shift_Incident_Line", "HR_Employee_Incidents", "HR_Shifts", "HR_Shifts_Line"
+							, "ING_HRMovement", "HR_Movement", "HR_Concept_Category", "HR_Job", "HR_Contract", "HR_Department", "HR_Employee"
+							, "HR_Concept", "HR_Concept_Acct", "HR_Attribute", "HR_Process", "HR_Period", "HR_PayrollConcept", "HR_Payroll"
+							, "HR_Year", "HR_EmploymentBenefitsRecord", "HR_EmploymentBenefitsLine", "HR_EmpBenSetReport", "HR_EmpBenSetReportLine"
 						};
 
 
